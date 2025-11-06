@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Mis Parqueaderos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Mis Parqueaderos</h3>
+  <a href="{% url 'add_parking' %}" class="btn btn-success">+ Nuevo Parqueadero</a>
+</div>
+
+{% if parkings %}
+<table class="table table-striped shadow-sm">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Ubicación</th>
+      <th>Espacios (C/M)</th>
+      <th>Horario</th>
+      <th>Tarifas</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for parking in parkings %}
+    <tr>
+      <td>{{ parking.name }}</td>
+      <td>{{ parking.nearby_place }}</td>
+      <td>{{ parking.car_spaces }} / {{ parking.moto_spaces }}</td>
+      <td>{{ parking.opening_time }} - {{ parking.closing_time }}</td>
+      <td>${{ parking.car_rate }} / ${{ parking.moto_rate }}</td>
+      <td>
+        <a href="{% url 'edit_parking' parking.id %}" class="btn btn-sm btn-primary">Editar</a>
+        <a href="{% url 'delete_parking' parking.id %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+        <a href="{% url 'parking_sessions' parking.id %}" class="btn btn-sm btn-outline-secondary">Sesiones</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="text-muted">No tienes parqueaderos registrados aún.</p>
+{% endif %}
+
+<a href="{% url 'owner_dashboard' %}" class="btn btn-secondary mt-3">⬅ Volver</a>
+{% endblock %}

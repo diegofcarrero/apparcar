@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar Parqueadero{% endblock %}
+{% block content %}
+<div class="col-md-6 mx-auto text-center">
+  <div class="card shadow p-4">
+    <h4>¿Seguro que quieres eliminar <strong>{{ parking.name }}</strong>?</h4>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mt-3">
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+        <a href="{% url 'owner_parkings' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

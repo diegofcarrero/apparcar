@@ -29,7 +29,7 @@ class Owner(models.Model):
 
 class Parking(models.Model):
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name="parkings")
-    name = models.CharField(max_length=100)
+    name = models.CharField("Nombre del estacionamiento", max_length=100)
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     car_spaces = models.PositiveIntegerField(default=0)
@@ -38,7 +38,8 @@ class Parking(models.Model):
     closing_time = models.TimeField()
     car_rate = models.DecimalField(max_digits=6, decimal_places=2)
     moto_rate = models.DecimalField(max_digits=6, decimal_places=2)
-    nearby_place = models.TextField((""))
+    nearby_place = models.TextField("Lugares cercanos", blank=True)   
+    
     def __str__(self):
         return f"{self.name} ({self.owner.user.username})"
 

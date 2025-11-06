@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Panel del Dueño{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card shadow p-4 mb-4">
+    <h3 class="text-success mb-3">Bienvenido, {{ request.user.username }} 👋</h3>
+    <p class="text-muted">Este es tu panel como <strong>dueño de parqueadero</strong>.</p>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-success h-100">
+        <div class="card-body text-center">
+          <h5 class="card-title">🅿️ Mis Parqueaderos</h5>
+          <p class="card-text text-muted">Gestiona tus parqueaderos: crea, edita o elimina.</p>
+          <a href="{% url 'owner_parkings' %}" class="btn btn-success w-100">
+            Gestionar Parqueaderos  </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-primary h-100">
+        <div class="card-body text-center">
+          <h5 class="card-title">🚗 Vehículos Estacionados</h5>
+          <p class="card-text text-muted">Controla las entradas y salidas de autos en tus parqueaderos.</p>
+          <a href="{% url 'owner_parkings' %}" class="btn btn-primary w-100">Ver Sesiones</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-danger h-100">
+        <div class="card-body text-center">
+          <h5 class="card-title">🔒 Cerrar Sesión</h5>
+          <p class="card-text text-muted">Salir del panel de dueño de forma segura.</p>
+          <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">Cerrar Sesión</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

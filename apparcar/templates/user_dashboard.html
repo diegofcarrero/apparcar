@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Panel Usuario{% endblock %}
+{% block content %}
+<div class="card shadow p-4">
+  <h3 class="text-primary">Bienvenido, {{ request.user.username }} 👋</h3>
+  <p>Este es tu panel como <strong>usuario</strong>.</p>
+  <a href="{% url 'logout' %}" class="btn btn-outline-danger mt-3">Cerrar sesión</a>
+</div>
+{% endblock %}
