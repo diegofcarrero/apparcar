@@ -257,3 +257,9 @@ def delete_vehicle(request, vehicle_id):
     vehicle.delete()
     messages.success(request, "Vehículo eliminado.")
     return redirect("vehicle_list")
+
+# --- LISTADO DE PARQUEADEROS PARA USUARIOS ---
+@login_required
+def parking_list_user(request):
+    parkings = Parking.objects.all()
+    return render(request, 'user/parking_list_user.html', {'parkings': parkings})

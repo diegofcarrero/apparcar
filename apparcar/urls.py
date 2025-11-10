@@ -19,4 +19,13 @@ urlpatterns = [
     path('owner/parking/<int:parking_id>/sessions/add/', views.add_parking_session, name='add_parking_session'),
     path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
 
+    # --- USER ROUTES ---
+    path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
+    path("user/vehicles/", views.vehicle_list, name="vehicle_list"),
+    path("user/vehicles/add/", views.add_vehicle, name="add_vehicle"),
+    path("user/vehicles/<int:vehicle_id>/edit/", views.edit_vehicle, name="edit_vehicle"),
+    path("user/vehicles/<int:vehicle_id>/delete/", views.delete_vehicle, name="delete_vehicle"),
+
+    path('user/parkings/', views.parking_list_user, name='parking_list_user'),
+
 ]
