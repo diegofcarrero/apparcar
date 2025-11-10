@@ -7,6 +7,7 @@ from .models import CustomUser
 from django.contrib import messages
 from .forms import ParkingForm
 from .models import Parking, Owner
+from .models import Car
 
 
 # --- Registro ---
@@ -118,3 +119,141 @@ def delete_parking(request, pk):
     return render(request, 'owner/parking_confirm_delete.html', {'parking': parking})
 
 
+def parking_sessions(request, parking_id):
+    parking = get_object_or_404(Parking, id=parking_id, owner__user=request.user)
+    sessions = parking.sessions.all()  # gracias al related_name="sessions"
+    return render(request, 'owner/parking_sessions.html', {
+        'parking': parking,
+        'sessions': sessions
+    })
+
+from django.utils import timezone
+from .models import ParkingSession, Car
+
+@login_required
+def parking_sessions(request, parking_id):
+    owner = get_object_or_404(Owner, user=request.user)
+    parking = get_object_or_404(Parking, id=parking_id, owner=owner)
+    sessions = ParkingSession.objects.filter(parking=parking)
+
+    return render(request, 'owner/parking_sessions.html', {
+        'parking': parking,
+        'sessions': sessions
+    })
+
+@login_required
+def add_parking_session(request, parking_id):
+    owner = get_object_or_404(Owner, user=request.user)
+    parking = get_object_or_404(Parking, id=parking_id, owner=owner)
+
+    if request.method == 'POST':
+        license_plate = request.POST.get('license_plate')
+        try:
+            car = Car.objects.get(license_plate=license_plate)
+        except Car.DoesNotExist:
+            messages.error(request, "No existe un vehículo con esa placa.")
+            return redirect('parking_sessions', parking_id=parking_id)
+
+        # Crear nueva sesión si no hay una activa para ese carro
+        existing = ParkingSession.objects.filter(car=car, parking=parking, exit_time__isnull=True)
+        if existing.exists():
+            messages.warning(request, "Este vehículo ya tiene una sesión activa en este parqueadero.")
+        else:
+            ParkingSession.objects.create(car=car, parking=parking)
+            messages.success(request, "Entrada registrada correctamente.")
+
+        return redirect('parking_sessions', parking_id=parking_id)
+
+    return render(request, 'owner/add_parking_session.html', {'parking': parking})
+
+@login_required
+def close_parking_session(request, session_id):
+    session = get_object_or_404(ParkingSession, id=session_id, parking__owner__user=request.user)
+    
+    if session.exit_time is None:
+        session.exit_time = timezone.now()
+        session.paid = True  # aquí puedes poner lógica de pago después
+        session.save()
+        messages.success(request, "Sesión finalizada correctamente.")
+    else:
+        messages.info(request, "Esta sesión ya fue finalizada.")
+
+    return redirect('parking_sessions', parking_id=session.parking.id)
+
+
+# ---------- USER VEHICLES MANAGEMENT ----------
+@login_required
+def user_dashboard(request):
+    """Panel principal del usuario"""
+    if request.user.role != "user":
+        messages.error(request, "No tienes permiso para acceder a esta página.")
+        return redirect("home")
+    return render(request, "user/dashboard.html")
+
+
+@login_required
+def vehicle_list(request):
+    """Lista de vehículos del usuario"""
+    if request.user.role != "user":
+        return redirect("home")
+
+    vehicles = Car.objects.filter(user=request.user)
+    return render(request, "user/vehicle_list.html", {"vehicles": vehicles})
+
+
+@login_required
+def add_vehicle(request):
+    """Registrar un nuevo vehículo"""
+    if request.user.role != "user":
+        return redirect("home")
+
+    if request.method == "POST":
+        license_plate = request.POST.get("license_plate").upper()
+        vehicle_type = request.POST.get("vehicle_type")
+        brand = request.POST.get("brand")
+        model = request.POST.get("model")
+        color = request.POST.get("color")
+
+        if Car.objects.filter(license_plate=license_plate).exists():
+            messages.warning(request, "Ya existe un vehículo con esa placa.")
+            return redirect("vehicle_list")
+
+        Car.objects.create(
+            user=request.user,
+            license_plate=license_plate,
+            vehicle_type=vehicle_type,
+            brand=brand,
+            model=model,
+            color=color
+        )
+        messages.success(request, "Vehículo registrado correctamente.")
+        return redirect("vehicle_list")
+
+    return render(request, "user/add_vehicle.html")
+
+
+@login_required
+def edit_vehicle(request, vehicle_id):
+    """Editar vehículo"""
+    vehicle = get_object_or_404(Car, id=vehicle_id, user=request.user)
+
+    if request.method == "POST":
+        vehicle.license_plate = request.POST.get("license_plate").upper()
+        vehicle.vehicle_type = request.POST.get("vehicle_type")
+        vehicle.brand = request.POST.get("brand")
+        vehicle.model = request.POST.get("model")
+        vehicle.color = request.POST.get("color")
+        vehicle.save()
+        messages.success(request, "Vehículo actualizado.")
+        return redirect("vehicle_list")
+
+    return render(request, "user/edit_vehicle.html", {"vehicle": vehicle})
+
+
+@login_required
+def delete_vehicle(request, vehicle_id):
+    """Eliminar vehículo"""
+    vehicle = get_object_or_404(Car, id=vehicle_id, user=request.user)
+    vehicle.delete()
+    messages.success(request, "Vehículo eliminado.")
+    return redirect("vehicle_list")

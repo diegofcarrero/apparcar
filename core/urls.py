@@ -10,5 +10,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # URLs de tu aplicación principal
-    path('', include('apparcar.urls')),  # 👉 reemplaza 'tuapp' por el nombre real de tu app
+    path('', include('apparcar.urls')), 
 ]

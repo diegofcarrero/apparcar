@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Nueva sesión - {{ parking.name }}{% endblock %}
+{% block content %}
+<h3>Registrar entrada de vehículo</h3>
+
+<form method="POST">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="license_plate" class="form-label">Placa del vehículo</label>
+    <input type="text" name="license_plate" id="license_plate" class="form-control" placeholder="ABC123" required>
+  </div>
+
+  <button type="submit" class="btn btn-success">Registrar entrada</button>
+  <a href="{% url 'parking_sessions' parking.id %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

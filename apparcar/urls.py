@@ -14,5 +14,9 @@ urlpatterns = [
     path('owner/parkings/<int:pk>/edit/', views.edit_parking, name='edit_parking'),
     path('owner/parkings/<int:pk>/delete/', views.delete_parking, name='delete_parking'),
 
+    path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
+    path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
+    path('owner/parking/<int:parking_id>/sessions/add/', views.add_parking_session, name='add_parking_session'),
+    path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
 
 ]

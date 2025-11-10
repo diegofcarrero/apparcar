@@ -38,7 +38,7 @@ class Parking(models.Model):
     closing_time = models.TimeField()
     car_rate = models.DecimalField(max_digits=6, decimal_places=2)
     moto_rate = models.DecimalField(max_digits=6, decimal_places=2)
-    nearby_place = models.TextField("Lugares cercanos", blank=True)   
+    nearby_place = models.CharField(max_length=100)  
     
     def __str__(self):
         return f"{self.name} ({self.owner.user.username})"
