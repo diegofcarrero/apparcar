@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+from datetime import timedelta
 
 
 # USER MODEL (extends Django User)
@@ -71,6 +73,23 @@ class ParkingSession(models.Model):
     entry_time = models.DateTimeField(auto_now_add=True)
     exit_time = models.DateTimeField(null=True, blank=True)
     paid = models.BooleanField(default=False)
+    total_amount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+
+    def calculate_total(self):
+        if not self.exit_time:
+            return 0
+
+        duration = self.exit_time - self.entry_time
+        hours = duration.total_seconds() / 3600
+        hours = max(1, round(hours))  # mínimo 1 hora
+
+        if self.car.vehicle_type == 'car':
+            rate = self.parking.car_rate
+        else:
+            rate = self.parking.moto_rate
+
+        total = rate * hours
+        return total
 
     def __str__(self):
         return f"{self.car.license_plate} en {self.parking.name}"

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}{{ parking.name }}{% endblock %}
+{% block content %}
+<div class="container mt-3">
+  <h3>{{ parking.name }}</h3>
+  <p><strong>Ubicación:</strong> {{ parking.nearby_place }}</p>
+  <p><strong>Tarifas:</strong> Carro: ${{ parking.car_rate }} / Moto: ${{ parking.moto_rate }}</p>
+  <p><strong>Espacios:</strong> Carros: {{ parking.car_spaces }} | Motos: {{ parking.moto_spaces }}</p>
+  <p><strong>Horario:</strong> {{ parking.opening_time }} - {{ parking.closing_time }}</p>
+
+  <a href="{% url 'parking_list_user' %}" class="btn btn-secondary mt-3">⬅ Volver</a>
+</div>
+{% endblock %}

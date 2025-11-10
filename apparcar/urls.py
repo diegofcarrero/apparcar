@@ -13,11 +13,15 @@ urlpatterns = [
     path('owner/parkings/add/', views.add_parking, name='add_parking'),
     path('owner/parkings/<int:pk>/edit/', views.edit_parking, name='edit_parking'),
     path('owner/parkings/<int:pk>/delete/', views.delete_parking, name='delete_parking'),
+    path('user/parking/<int:parking_id>/', views.parking_detail, name='parking_detail'),
+
 
     path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
     path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
     path('owner/parking/<int:parking_id>/sessions/add/', views.add_parking_session, name='add_parking_session'),
     path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
+    path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
+
 
     # --- USER ROUTES ---
     path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
@@ -27,5 +31,7 @@ urlpatterns = [
     path("user/vehicles/<int:vehicle_id>/delete/", views.delete_vehicle, name="delete_vehicle"),
 
     path('user/parkings/', views.parking_list_user, name='parking_list_user'),
+    
+
 
 ]

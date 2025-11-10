@@ -10,6 +10,7 @@
   <thead>
     <tr>
       <th>Vehículo</th>
+      <th>Tipo</th>
       <th>Entrada</th>
       <th>Salida</th>
       <th>Pagado</th>
@@ -20,16 +21,33 @@
     {% for s in sessions %}
     <tr>
       <td>{{ s.car.license_plate }}</td>
+      <td>{{ s.car.vehicle_type }}</td>
       <td>{{ s.entry_time }}</td>
-      <td>{{ s.exit_time|default:"--" }}</td>
+      <td>
+        {% if s.exit_time %}
+          {{ s.exit_time }}
+        {% else %}
+          En curso
+        {% endif %}
+      </td>
       <td>{{ s.paid|yesno:"Sí,No" }}</td>
       <td>
         {% if not s.exit_time %}
-        <a href="{% url 'close_parking_session' s.id %}" class="btn btn-sm btn-outline-danger">Finalizar</a>
+            <form method="post" action="{% url 'close_parking_session' s.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Finalizar
+                </button>
+            </form>
+
         {% else %}
-        <span class="text-muted">Completada</span>
+          <span class="badge bg-success">Finalizada</span>
         {% endif %}
       </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6" class="text-center text-muted">No hay sesiones registradas aún.</td>
     </tr>
     {% endfor %}
   </tbody>

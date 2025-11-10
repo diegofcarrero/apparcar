@@ -6,8 +6,8 @@ from .forms import CustomUserCreationForm, CustomLoginForm
 from .models import CustomUser
 from django.contrib import messages
 from .forms import ParkingForm
-from .models import Parking, Owner
-from .models import Car
+from .models import Parking, Owner, ParkingSession, Car
+from django.utils import timezone
 
 
 # --- Registro ---
@@ -119,16 +119,18 @@ def delete_parking(request, pk):
     return render(request, 'owner/parking_confirm_delete.html', {'parking': parking})
 
 
+@login_required
 def parking_sessions(request, parking_id):
     parking = get_object_or_404(Parking, id=parking_id, owner__user=request.user)
-    sessions = parking.sessions.all()  # gracias al related_name="sessions"
+    sessions = ParkingSession.objects.filter(parking=parking).select_related('car')
+
     return render(request, 'owner/parking_sessions.html', {
         'parking': parking,
         'sessions': sessions
     })
 
-from django.utils import timezone
-from .models import ParkingSession, Car
+
+
 
 @login_required
 def parking_sessions(request, parking_id):
@@ -168,15 +170,17 @@ def add_parking_session(request, parking_id):
 
 @login_required
 def close_parking_session(request, session_id):
-    session = get_object_or_404(ParkingSession, id=session_id, parking__owner__user=request.user)
-    
-    if session.exit_time is None:
+    """Finaliza una sesión de parqueo, calcula el total y marca como pagada."""
+    session = get_object_or_404(ParkingSession, id=session_id)
+
+    if not session.exit_time:
         session.exit_time = timezone.now()
-        session.paid = True  # aquí puedes poner lógica de pago después
+        session.total_amount = session.calculate_total()  # 👈 Aquí el cálculo automático
+        session.paid = True  # Puedes dejar False si planeas manejar pagos aparte
         session.save()
-        messages.success(request, "Sesión finalizada correctamente.")
+        messages.success(request, f"✅ Sesión finalizada. Total a pagar: ${session.total_amount:.2f}")
     else:
-        messages.info(request, "Esta sesión ya fue finalizada.")
+        messages.warning(request, "⚠️ Esta sesión ya fue finalizada anteriormente.")
 
     return redirect('parking_sessions', parking_id=session.parking.id)
 
@@ -259,7 +263,24 @@ def delete_vehicle(request, vehicle_id):
     return redirect("vehicle_list")
 
 # --- LISTADO DE PARQUEADEROS PARA USUARIOS ---
-@login_required
+from django.db.models import Q
+
 def parking_list_user(request):
+    query = request.GET.get('q', '')
     parkings = Parking.objects.all()
-    return render(request, 'user/parking_list_user.html', {'parkings': parkings})
+
+    if query:
+        parkings = parkings.filter(
+            Q(name__icontains=query) |
+            Q(nearby_place__icontains=query)
+        )
+
+    return render(request, 'user/parking_list_user.html', {
+        'parkings': parkings,
+        'query': query,
+    })
+
+
+def parking_detail(request, parking_id):
+    parking = get_object_or_404(Parking, id=parking_id)
+    return render(request, 'user/parking_detail.html', {'parking': parking})
