@@ -1,45 +1,58 @@
 {% extends 'base.html' %}
-{% block title %}Buscar Parqueaderos{% endblock %}
 {% block content %}
-<div class="container mt-3">
-  <h3>Buscar Parqueaderos</h3>
+<div class="container mt-4">
 
-  <form method="get" class="d-flex mb-3">
-    <input
-      type="text"
-      name="q"
-      value="{{ query }}"
-      placeholder="Buscar por nombre o lugar cercano..."
-      class="form-control me-2"
-    >
-    <button type="submit" class="btn btn-primary">Buscar</button>
+  {% if selected_vehicle %}
+  <div class="alert alert-info text-center">
+    Vehículo seleccionado: <strong>{{ selected_vehicle.license_plate }}</strong> ({{ selected_vehicle.get_vehicle_type_display }})
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center">
+    ⚠️ No has seleccionado ningún vehículo. Regresa al panel y selecciona uno antes de estacionar.
+  </div>
+  {% endif %}
+
+  <h3 class="mb-4">Parqueaderos disponibles</h3>
+
+  <form method="GET" action="{% url 'parking_list_user' %}">
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" name="q" placeholder="Buscar por nombre o lugar..." value="{{ query }}">
+      {% if selected_vehicle %}
+        <input type="hidden" name="vehicle_id" value="{{ selected_vehicle.id }}">
+      {% endif %}
+      <button class="btn btn-outline-primary" type="submit">Buscar</button>
+    </div>
   </form>
 
-  {% if parkings %}
-  <table class="table table-striped shadow-sm">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Ubicación</th>
-        <th>Espacios (C/M)</th>
-        <th>Tarifas</th>
-        <th>Acción</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in parkings %}
-      <tr>
-        <td>{{ p.name }}</td>
-        <td>{{ p.nearby_place }}</td>
-        <td>{{ p.car_spaces }} / {{ p.moto_spaces }}</td>
-        <td>${{ p.car_rate }} / ${{ p.moto_rate }}</td>
-        <td><a href="{% url 'parking_detail' p.id %}" class="btn btn-sm btn-success">Ver</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="text-muted">No se encontraron parqueaderos que coincidan con la búsqueda.</p>
-  {% endif %}
+  <div class="row">
+    {% for p in parkings %}
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ p.name }}</h5>
+          <p class="card-text">
+            📍 <strong>{{ p.nearby_place }}</strong><br>
+            🕒 {{ p.opening_time }} - {{ p.closing_time }}<br>
+            🚗 Carros: ${{ p.car_rate }} /hr<br>
+            🏍️ Motos: ${{ p.moto_rate }} /hr
+          </p>
+
+          {% if selected_vehicle %}
+            <a href="{% url 'start_parking_session' p.id %}?vehicle_id={{ selected_vehicle.id }}" class="btn btn-success w-100">
+              🚗 Estacionar aquí
+            </a>
+          {% else %}
+            <button class="btn btn-secondary w-100" disabled>
+              Selecciona un vehículo primero
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center">No hay parqueaderos registrados.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
+

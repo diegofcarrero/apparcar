@@ -1,4 +1,4 @@
-# tuapp/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -8,6 +8,7 @@ from django.contrib import messages
 from .forms import ParkingForm
 from .models import Parking, Owner, ParkingSession, Car
 from django.utils import timezone
+from django.http import JsonResponse
 
 
 # --- Registro ---
@@ -188,11 +189,19 @@ def close_parking_session(request, session_id):
 # ---------- USER VEHICLES MANAGEMENT ----------
 @login_required
 def user_dashboard(request):
-    """Panel principal del usuario"""
+    """Panel principal del usuario con lista de vehículos y sesiones activas."""
     if request.user.role != "user":
         messages.error(request, "No tienes permiso para acceder a esta página.")
-        return redirect("home")
-    return render(request, "user/dashboard.html")
+        return redirect("login")
+
+    vehicles = Car.objects.filter(user=request.user)
+    active_sessions = ParkingSession.objects.filter(car__user=request.user, exit_time__isnull=True).select_related("car", "parking")
+
+    return render(request, "user/dashboard.html", {
+        "vehicles": vehicles,
+        "active_sessions": active_sessions,
+    })
+
 
 
 @login_required
@@ -265,22 +274,95 @@ def delete_vehicle(request, vehicle_id):
 # --- LISTADO DE PARQUEADEROS PARA USUARIOS ---
 from django.db.models import Q
 
-def parking_list_user(request):
-    query = request.GET.get('q', '')
-    parkings = Parking.objects.all()
+from django.db.models import Q
+from django.contrib import messages
 
+@login_required
+def parking_list_user(request):
+    """Lista los parqueaderos disponibles y recibe un vehículo seleccionado."""
+    vehicle_id = request.GET.get('vehicle_id')
+    query = request.GET.get('q', '')
+
+    parkings = Parking.objects.all()
     if query:
         parkings = parkings.filter(
             Q(name__icontains=query) |
             Q(nearby_place__icontains=query)
         )
 
+    selected_vehicle = None
+    if vehicle_id:
+        try:
+            selected_vehicle = Car.objects.get(id=vehicle_id, user=request.user)
+        except Car.DoesNotExist:
+            messages.warning(request, "El vehículo seleccionado no es válido.")
+
     return render(request, 'user/parking_list_user.html', {
         'parkings': parkings,
         'query': query,
+        'selected_vehicle': selected_vehicle,
     })
+
 
 
 def parking_detail(request, parking_id):
     parking = get_object_or_404(Parking, id=parking_id)
     return render(request, 'user/parking_detail.html', {'parking': parking})
+
+
+@login_required
+def start_parking_session(request, parking_id):
+    """Crea una sesión de parqueo para el vehículo seleccionado."""
+    if request.user.role != "user":
+        messages.error(request, "Solo los usuarios pueden iniciar sesiones de parqueo.")
+        return redirect("login")
+
+    vehicle_id = request.GET.get("vehicle_id")
+    if not vehicle_id:
+        messages.warning(request, "Debes seleccionar un vehículo antes de estacionar.")
+        return redirect("parking_list_user")
+
+    try:
+        vehicle = Car.objects.get(id=vehicle_id, user=request.user)
+    except Car.DoesNotExist:
+        messages.error(request, "El vehículo seleccionado no es válido.")
+        return redirect("parking_list_user")
+
+    parking = get_object_or_404(Parking, id=parking_id)
+
+    # Evita duplicar sesiones activas para el mismo vehículo
+    existing = ParkingSession.objects.filter(car=vehicle, exit_time__isnull=True)
+    if existing.exists():
+        messages.warning(request, "Este vehículo ya tiene una sesión activa.")
+        return redirect("parking_list_user")
+
+    # Crear sesión nueva
+    ParkingSession.objects.create(car=vehicle, parking=parking)
+    messages.success(request, f"🚗 Has estacionado en '{parking.name}' correctamente.")
+
+    return redirect("user_dashboard")
+
+@login_required
+def close_user_session(request, session_id):
+    """Permite al usuario finalizar su sesión de parqueo."""
+    session = get_object_or_404(ParkingSession, id=session_id, car__user=request.user)
+
+    if session.exit_time:
+        messages.warning(request, "Esta sesión ya fue finalizada.")
+        return redirect("user_dashboard")
+
+    session.exit_time = timezone.now()
+    session.total_amount = session.calculate_total()
+    session.paid = True
+    session.save()
+
+    messages.success(request, f"✅ Sesión finalizada. Total a pagar: ${session.total_amount:.2f}")
+    return redirect("user_dashboard")
+
+
+
+@login_required
+def session_total_ajax(request, session_id):
+    session = get_object_or_404(ParkingSession, id=session_id)
+    total = session.calculate_total()
+    return JsonResponse({'total': float(total)})

@@ -31,6 +31,12 @@ urlpatterns = [
     path("user/vehicles/<int:vehicle_id>/delete/", views.delete_vehicle, name="delete_vehicle"),
 
     path('user/parkings/', views.parking_list_user, name='parking_list_user'),
+
+    path("user/parking/<int:parking_id>/start/", views.start_parking_session, name="start_parking_session"),
+    path("user/session/<int:session_id>/close/", views.close_user_session, name="close_user_session"),
+    
+    path('user/session/<int:session_id>/total/', views.session_total_ajax, name='session_total_ajax'),
+
     
 
 
