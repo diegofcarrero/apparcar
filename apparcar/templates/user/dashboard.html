@@ -3,16 +3,13 @@
 {% block content %}
 
 <div class="container mt-5">
- <div class="container mt-5">
   <!-- Saludo / título de la home -->
   <h2 class="text-center mb-1">👋 Hola, {{ user.username }}</h2>
   <p class="text-center text-muted mb-4">Este es tu panel de usuario</p>
- 
+
   <!-- Botón para mostrar/ocultar formulario -->
   <div class="text-end mb-3">
-    <button id="toggle-form-btn" class="btn btn-success">
-      ➕ Agregar Vehículo
-    </button>
+    <button id="toggle-form-btn" class="btn btn-success">➕ Agregar Vehículo</button>
   </div>
 
   <!-- Formulario oculto inicialmente -->
@@ -77,136 +74,87 @@
 
   <!-- Botón de buscar parqueaderos -->
   <div class="text-center mt-4">
-    <!-- Botón de buscar parqueaderos -->
-<div class="text-center mt-4">
-  <a id="search-btn" href="#" class="btn btn-primary btn-lg disabled" aria-disabled="true">
-    🔍 Buscar Parqueaderos
-  </a>
+    <a id="search-btn" href="#" class="btn btn-primary btn-lg disabled" aria-disabled="true">
+      🔍 Buscar Parqueaderos
+    </a>
+  </div>
+
+  <!-- Secciones de sesiones activas -->
+  {% if active_sessions %}
+  <hr class="my-4">
+  <h4 class="text-center mb-3">🅿️ Sesiones Activas</h4>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Vehículo</th>
+          <th>Parqueadero</th>
+          <th>Hora de Entrada</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in active_sessions %}
+        <tr>
+          <td>{{ session.car.license_plate }}</td>
+          <td>{{ session.parking.name }}</td>
+          <td>{{ session.entry_time|date:"d/m/Y H:i" }}</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#closeSessionModal{{ session.id }}">
+              🛑 Finalizar
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="closeSessionModal{{ session.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content p-3">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Finalizar Sesión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Vehículo: <strong>{{ session.car.license_plate }}</strong></p>
+                    <p>Parqueadero: <strong>{{ session.parking.name }}</strong></p>
+                    <p>Hora de entrada: {{ session.entry_time|date:"d/m/Y H:i" }}</p>
+                    <p>Total estimado: <strong>$<span id="totalSession{{ session.id }}">0.00</span></strong></p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{% url 'close_user_session' session.id %}" class="btn btn-danger">Confirmar Finalización</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info text-center mt-4">
+    No tienes sesiones de parqueo activas.
+  </div>
+  {% endif %}
+
 </div>
 
+<!-- JavaScript unificado -->
 <script>
-  const radios = document.querySelectorAll('input[name="selected_vehicle"]');
-  const searchBtn = document.getElementById('search-btn');
-
-  radios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      searchBtn.classList.remove('disabled');
-      searchBtn.setAttribute('aria-disabled', 'false');
-
-      // Actualiza el enlace con el vehículo seleccionado
-      const vehicleId = radio.value;
-      searchBtn.href = `{% url 'parking_list_user' %}?vehicle_id=${vehicleId}`;
-    });
-  });
-
-  // Mostrar/ocultar formulario (mantiene tu funcionalidad anterior)
+  // Mostrar/ocultar formulario
   const toggleFormBtn = document.getElementById('toggle-form-btn');
   const addForm = document.getElementById('add-vehicle-form');
 
   toggleFormBtn.addEventListener('click', () => {
-    if (addForm.style.display === 'none') {
-      addForm.style.display = 'block';
-      toggleFormBtn.textContent = '✖️ Cancelar';
-      toggleFormBtn.classList.remove('btn-success');
-      toggleFormBtn.classList.add('btn-danger');
-    } else {
-      addForm.style.display = 'none';
-      toggleFormBtn.textContent = '➕ Agregar Vehículo';
-      toggleFormBtn.classList.remove('btn-danger');
-      toggleFormBtn.classList.add('btn-success');
-    }
+    addForm.style.display = addForm.style.display === 'none' ? 'block' : 'none';
+    toggleFormBtn.textContent = addForm.style.display === 'block' ? '✖️ Cancelar' : '➕ Agregar Vehículo';
+    toggleFormBtn.classList.toggle('btn-success');
+    toggleFormBtn.classList.toggle('btn-danger');
   });
-</script>
 
-  </div>
-    </div>
-
-    <script>
-      // Mostrar/ocultar formulario
-      const toggleFormBtn = document.getElementById('toggle-form-btn');
-      const addForm = document.getElementById('add-vehicle-form');
-
-      toggleFormBtn.addEventListener('click', () => {
-        if (addForm.style.display === 'none') {
-          addForm.style.display = 'block';
-          toggleFormBtn.textContent = '✖️ Cancelar';
-          toggleFormBtn.classList.remove('btn-success');
-          toggleFormBtn.classList.add('btn-danger');
-        } else {
-          addForm.style.display = 'none';
-          toggleFormBtn.textContent = '➕ Agregar Vehículo';
-          toggleFormBtn.classList.remove('btn-danger');
-          toggleFormBtn.classList.add('btn-success');
-        }
-      });
-    {% if active_sessions %}
-    <hr class="my-4">
-    <h4 class="text-center mb-3">🅿️ Sesiones Activas</h4>
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle text-center">
-        <thead class="table-dark">
-          <tr>
-            <th>Vehículo</th>
-            <th>Parqueadero</th>
-            <th>Hora de Entrada</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for session in active_sessions %}
-          <tr>
-            <td>{{ session.car.license_plate }}</td>
-            <td>{{ session.parking.name }}</td>
-            <td>{{ session.entry_time|date:"d/m/Y H:i" }}</td>
-            <td>
-             <td>
-              <button type="button" class="btn btn-danger btn-sm" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#closeSessionModal{{ session.id }}">
-                🛑 Finalizar
-              </button>
-
-              <!-- Modal -->
-              <div class="modal fade" id="closeSessionModal{{ session.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <p>Total estimado: <strong>$<span id="totalSession{{ session.id }}">0.00</span></strong></p>
-                    <div class="modal-header">
-                      <h5 class="modal-title">Finalizar Sesión</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                      <p>Vehículo: <strong>{{ session.car.license_plate }}</strong></p>
-                      <p>Parqueadero: <strong>{{ session.parking.name }}</strong></p>
-                      <p>Hora de entrada: {{ session.entry_time|date:"d/m/Y H:i" }}</p>
-                      {% with total=session.calculate_total %}
-                      <p>Total estimado: <strong>${{ total|floatformat:2 }}</strong></p>
-                      {% endwith %}
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                      <a href="{% url 'close_user_session' session.id %}" class="btn btn-danger">
-                        Confirmar Finalización
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </td>
-
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="alert alert-info text-center mt-4">
-      No tienes sesiones de parqueo activas.
-    </div>
-    {% endif %}
-
-  // Activar botón cuando se selecciona un vehículo
+  // Activar botón de buscar parqueaderos y actualizar enlace
   const radios = document.querySelectorAll('input[name="selected_vehicle"]');
   const searchBtn = document.getElementById('search-btn');
 
@@ -214,12 +162,12 @@
     radio.addEventListener('change', () => {
       searchBtn.classList.remove('disabled');
       searchBtn.setAttribute('aria-disabled', 'false');
+      searchBtn.href = `{% url 'parking_list_user' %}?vehicle_id=${radio.value}`;
     });
   });
-</script>
 
-<script>
-  {% for session in sessions %}
+  // Actualizar totales de sesiones activas
+  {% for session in active_sessions %}
   function updateTotal{{ session.id }}() {
     fetch("{% url 'session_total_ajax' session.id %}")
       .then(response => response.json())
@@ -228,14 +176,13 @@
       });
   }
 
-  // Actualiza cada 10 segundos
   setInterval(updateTotal{{ session.id }}, 10000);
 
-  // Actualiza también cuando se abre el modal
   var modal{{ session.id }} = document.getElementById("closeSessionModal{{ session.id }}");
-  modal{{ session.id }}.addEventListener('show.bs.modal', updateTotal{{ session.id }});
+  if(modal{{ session.id }}) {
+    modal{{ session.id }}.addEventListener('show.bs.modal', updateTotal{{ session.id }});
+  }
   {% endfor %}
 </script>
-
 
 {% endblock %}
