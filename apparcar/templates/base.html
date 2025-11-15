@@ -4,47 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ParkingApp{% endblock %}</title>
-    <!-- Bootstrap CSS -->
+
+    <!-- Bootstrap CSS (UNA sola versión) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Asegurar que el mapa siempre tenga tamaño -->
+    <style>
+        #map, .leaflet-container {
+            height: 420px !important;
+            width: 100% !important;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body class="bg-light">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">ParkingApp</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
-          </li>
-        {% endif %}
-        <!-- Botón Home visible en todas las vistas -->
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}" 
-              href="{% url 'user_dashboard' %}">
-              🏠 Inicio
-            </a>
-        </li>
-      </ul>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">ParkingApp</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Cerrar sesión</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
+                    </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}"
+                       href="{% url 'user_dashboard' %}">
+                        🏠 Inicio
+                    </a>
+                </li>
+
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>
 
 <div class="container">
     {% block content %}{% endblock %}
 </div>
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Leaflet JS (UNA sola vez) -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+{% block extra_scripts %}{% endblock %}
+
 </body>
 </html>

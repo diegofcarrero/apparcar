@@ -9,6 +9,7 @@ from .forms import ParkingForm
 from .models import Parking, Owner, ParkingSession, Car
 from django.utils import timezone
 from django.http import JsonResponse
+import json
 
 
 # --- Registro ---
@@ -131,18 +132,6 @@ def parking_sessions(request, parking_id):
     })
 
 
-
-
-@login_required
-def parking_sessions(request, parking_id):
-    owner = get_object_or_404(Owner, user=request.user)
-    parking = get_object_or_404(Parking, id=parking_id, owner=owner)
-    sessions = ParkingSession.objects.filter(parking=parking)
-
-    return render(request, 'owner/parking_sessions.html', {
-        'parking': parking,
-        'sessions': sessions
-    })
 
 @login_required
 def add_parking_session(request, parking_id):
@@ -279,30 +268,42 @@ from django.contrib import messages
 
 @login_required
 def parking_list_user(request):
-    """Lista los parqueaderos disponibles y recibe un vehículo seleccionado."""
-    vehicle_id = request.GET.get('vehicle_id')
-    query = request.GET.get('q', '')
-
-    parkings = Parking.objects.all()
-    if query:
-        parkings = parkings.filter(
-            Q(name__icontains=query) |
-            Q(nearby_place__icontains=query)
-        )
+    query = request.GET.get("q", "")
+    vehicle_id = request.GET.get("vehicle_id")
 
     selected_vehicle = None
+
+    # Obtener vehículo seleccionado SI existe
     if vehicle_id:
-        try:
-            selected_vehicle = Car.objects.get(id=vehicle_id, user=request.user)
-        except Car.DoesNotExist:
-            messages.warning(request, "El vehículo seleccionado no es válido.")
+        selected_vehicle = get_object_or_404(Car, id=vehicle_id, user=request.user)
 
-    return render(request, 'user/parking_list_user.html', {
-        'parkings': parkings,
-        'query': query,
-        'selected_vehicle': selected_vehicle,
+    # Filtrar parqueaderos
+    parkings = Parking.objects.all()
+
+    if query:
+        parkings = parkings.filter(
+            models.Q(name__icontains=query) |
+            models.Q(nearby_place__icontains=query)
+        )
+
+    # Convertir parqueaderos a JSON para Google Maps
+    parkings_json = json.dumps([
+        {
+            "id": p.id,
+            "name": p.name,
+            "latitude": float(p.latitude),
+            "longitude": float(p.longitude),
+            "nearby_place": p.nearby_place,
+        }
+        for p in parkings
+    ])
+
+    return render(request, "user/parking_list_user.html", {
+        "parkings": parkings,
+        "query": query,
+        "parkings_json": parkings_json,
+        "selected_vehicle": selected_vehicle,
     })
-
 
 
 def parking_detail(request, parking_id):

@@ -10,4 +10,43 @@
 
   <a href="{% url 'parking_list_user' %}" class="btn btn-secondary mt-3">⬅ Volver</a>
 </div>
+<h3>📍 Ubicación en el mapa</h3>
+
+<!-- Contenedor del mapa -->
+<div id="map" style="height: 350px; width: 100%; border-radius: 10px;"></div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    // Coordenadas del parqueadero desde Django
+    const parkingLat = {{ parking.latitude }};
+    const parkingLng = {{ parking.longitude }};
+
+    // Inicializar mapa
+    const map = L.map('map').setView([parkingLat, parkingLng], 17);
+
+    // Capa de mapa (gratuita OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    // Marcador
+    L.marker([parkingLat, parkingLng])
+        .addTo(map)
+        .bindPopup("{{ parking.name }}<br>{{ parking.nearby_place }}")
+        .openPopup();
+
+</script>
+<a
+    href="https://www.google.com/maps?q={{ parking.latitude }},{{ parking.longitude }}"
+    target="_blank"
+    class="btn btn-primary mt-3"
+>
+    📍 Abrir en Google Maps
+</a>
+
 {% endblock %}
