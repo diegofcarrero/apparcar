@@ -101,15 +101,20 @@ def add_parking(request):
 def edit_parking(request, pk):
     owner = get_object_or_404(Owner, user=request.user)
     parking = get_object_or_404(Parking, pk=pk, owner=owner)
+
     if request.method == 'POST':
-        form = ParkingForm(request.POST, instance=parking)
+        form = ParkingForm(request.POST, request.FILES, instance=parking)
         if form.is_valid():
             form.save()
             messages.success(request, 'Parqueadero actualizado correctamente.')
             return redirect('owner_parkings')
     else:
         form = ParkingForm(instance=parking)
-    return render(request, 'owner/parking_form.html', {'form': form, 'title': 'Editar Parqueadero'})
+
+    return render(request, 'owner/parking_form.html', {
+        'form': form,
+        'title': 'Editar Parqueadero'
+    })
 
 # --- ELIMINAR PARQUEADERO ---
 @login_required
