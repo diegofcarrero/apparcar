@@ -42,7 +42,7 @@ class Parking(models.Model):
     
     car_rate = models.DecimalField(max_digits=6, decimal_places=2)
     moto_rate = models.DecimalField(max_digits=6, decimal_places=2)
-    nearby_place = models.CharField(max_length=200)  
+    nearby_place = models.CharField(max_length=500)  
 
     embedding = models.JSONField(null=True, blank=True, help_text="Embedding semántico (lista de floats)")
 

@@ -24,7 +24,7 @@
             {% if scores %}
               <span class="badge bg-secondary">{{ scores.forloop.counter0|add:0 }}</span>
             {% endif %}
-            <a href="{% url 'parking_sessions' parking.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+            <a href="{% url 'parking_detail' parking.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
           </div>
         </li>
       {% endfor %}

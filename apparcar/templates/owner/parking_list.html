@@ -22,7 +22,7 @@
     {% for parking in parkings %}
     <tr>
       <td>{{ parking.name }}</td>
-      <td>{{ parking.nearby_place }}</td>
+      <td>{{ parking.longitude }}</td>
       <td>{{ parking.car_spaces }} / {{ parking.moto_spaces }}</td>
       <td>{{ parking.opening_time }} - {{ parking.closing_time }}</td>
       <td>${{ parking.car_rate }} / ${{ parking.moto_rate }}</td>
