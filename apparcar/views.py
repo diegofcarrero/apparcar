@@ -10,6 +10,8 @@ from .models import Parking, Owner, ParkingSession, Car
 from django.utils import timezone
 from django.http import JsonResponse
 import json
+from .semantic_search import semantic_search
+from django.db import models
 
 
 # --- Registro ---
@@ -293,7 +295,10 @@ def parking_list_user(request):
             "name": p.name,
             "latitude": float(p.latitude),
             "longitude": float(p.longitude),
-            "nearby_place": p.nearby_place,
+            "car_spaces": p.car_spaces,
+            "moto_spaces": p.moto_spaces,
+            "opening_time": p.opening_time.strftime("%H:%M") if p.opening_time else "",
+            "closing_time": p.closing_time.strftime("%H:%M") if p.closing_time else "",
         }
         for p in parkings
     ])
@@ -367,3 +372,22 @@ def session_total_ajax(request, session_id):
     session = get_object_or_404(ParkingSession, id=session_id)
     total = session.calculate_total()
     return JsonResponse({'total': float(total)})
+
+@login_required
+def user_semantic_search(request):
+    query = request.GET.get('q', '').strip()
+    results = []
+    scores = []
+    if query:
+        hits = semantic_search(query, top_k=20)  # [(parking, score), ...]
+        # puedes aplicar filtros adicionales (p. ej. parking abierto ahora)
+        for parking, score in hits:
+            results.append(parking)
+            scores.append(score)
+
+    return render(request, 'user/semantic_search.html', {
+        'query': query,
+        'results': results,
+        'scores': scores,
+    })
+

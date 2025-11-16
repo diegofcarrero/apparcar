@@ -17,11 +17,8 @@ urlpatterns = [
 
 
     path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
-    path('owner/parking/<int:parking_id>/sessions/', views.parking_sessions, name='parking_sessions'),
     path('owner/parking/<int:parking_id>/sessions/add/', views.add_parking_session, name='add_parking_session'),
     path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
-    path('owner/session/<int:session_id>/close/', views.close_parking_session, name='close_parking_session'),
-
 
     # --- USER ROUTES ---
     path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
@@ -37,7 +34,7 @@ urlpatterns = [
     
     path('user/session/<int:session_id>/total/', views.session_total_ajax, name='session_total_ajax'),
 
-    
+    path('search/', views.user_semantic_search, name='user_semantic_search'),
 
 
 ]

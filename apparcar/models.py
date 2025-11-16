@@ -36,11 +36,16 @@ class Parking(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     car_spaces = models.PositiveIntegerField(default=0)
     moto_spaces = models.PositiveIntegerField(default=0)
+
     opening_time = models.TimeField()
     closing_time = models.TimeField()
+    
     car_rate = models.DecimalField(max_digits=6, decimal_places=2)
     moto_rate = models.DecimalField(max_digits=6, decimal_places=2)
     nearby_place = models.CharField(max_length=100)  
+
+    embedding = models.JSONField(null=True, blank=True, help_text="Embedding semántico (lista de floats)")
+
     
     def __str__(self):
         return f"{self.name} ({self.owner.user.username})"

@@ -27,41 +27,9 @@
                 <input type="hidden" name="vehicle_id" value="{{ selected_vehicle.id }}">
             {% endif %}
             <button class="btn btn-outline-primary">Buscar</button>
+            <a href="{% url 'user_semantic_search' %}" class="btn btn-info">Buscar Parqueaderos con IA 🔍</a>
         </div>
     </form>
-
-    <!-- Listado -->
-    <div class="row">
-        {% for p in parkings %}
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ p.name }}</h5>
-
-                        <p class="card-text">
-                            📍 <strong>{{ p.nearby_place }}</strong><br>
-                            🕒 {{ p.opening_time }} - {{ p.closing_time }}<br>
-                            🚗 Carros: ${{ p.car_rate }} /hr<br>
-                            🏍️ Motos: ${{ p.moto_rate }} /hr
-                        </p>
-
-                        {% if selected_vehicle %}
-                            <a href="{% url 'start_parking_session' p.id %}?vehicle_id={{ selected_vehicle.id }}"
-                               class="btn btn-success w-100">
-                                🚗 Estacionar aquí
-                            </a>
-                        {% else %}
-                            <button class="btn btn-secondary w-100" disabled>
-                                Selecciona un vehículo primero
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <p class="text-center">No hay parqueaderos registrados.</p>
-        {% endfor %}
-    </div>
 
     <!-- Mapa -->
     <h3 class="text-center mt-5">Mapa de Parqueaderos</h3>
@@ -100,25 +68,27 @@ function initMap() {
             position: pos,
             map: map,
             title: p.name
-        });
+    });
 
-        // Popup dinámico
-        const popup = new google.maps.InfoWindow({
-            content: `
-                <b>${p.name}</b><br>
-                ${p.nearby_place}<br><br>
+    // Popup dinámico
+    const popup = new google.maps.InfoWindow({
+        content: `
+            <b>${p.name}</b><br>
+            🚗 carros: ${p.car_spaces}<br>
+            🏍️ motos: ${p.moto_spaces}<br>
+            🕒 Horario: ${p.opening_time} - ${p.closing_time}<br><br>
+            {% if selected_vehicle %}
+                <a class="btn btn-sm btn-primary"
+                    href="{% url 'start_parking_session' 999999 %}?vehicle_id={{ selected_vehicle.id }}"
+                    onclick="this.href=this.href.replace('999999', ${p.id})">
+                    Estacionar aquí
+                </a>
+            {% else %}
+                <span class="text-muted">Selecciona un vehículo para estacionar</span>
+            {% endif %}
+        `
+    });
 
-                {% if selected_vehicle %}
-                    <a class="btn btn-sm btn-primary"
-                       href="{% url 'start_parking_session' 999999 %}?vehicle_id={{ selected_vehicle.id }}"
-                       onclick="this.href=this.href.replace('999999', ${p.id})">
-                        Estacionar aquí
-                    </a>
-                {% else %}
-                    <span class="text-muted">Selecciona un vehículo para estacionar</span>
-                {% endif %}
-            `
-        });
 
         marker.addListener("click", () => popup.open(map, marker));
 
@@ -130,7 +100,9 @@ function initMap() {
         map.fitBounds(bounds);
     }
 }
+
 </script>
+
 
 <!-- Google Maps con callback -->
 <script async defer
